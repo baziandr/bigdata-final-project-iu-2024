@@ -1,0 +1,91 @@
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> -- Create a hive database like team6_projectdb in project/hive/warehouse and access it.
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> DROP DATABASE IF EXISTS team6_projectdb CASCADE;
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> CREATE DATABASE team6_projectdb LOCATION "project/hive/warehouse";
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> USE team6_projectdb;
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> -- Create external Hive tables for the tables that are imported to HDFS in stage 1.
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> CREATE EXTERNAL TABLE items_unpart(
+. . . . . . . . . . . . . . . . . . . . . . .>     itemid INT,
+. . . . . . . . . . . . . . . . . . . . . . .>     shopid INT,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_name STRING,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_description STRING,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_variation STRING,
+. . . . . . . . . . . . . . . . . . . . . . .>     price FLOAT,
+. . . . . . . . . . . . . . . . . . . . . . .>     stock INT,
+. . . . . . . . . . . . . . . . . . . . . . .>     category STRING,
+. . . . . . . . . . . . . . . . . . . . . . .>     cb_option BOOLEAN,
+. . . . . . . . . . . . . . . . . . . . . . .>     is_preferred BOOLEAN,
+. . . . . . . . . . . . . . . . . . . . . . .>     sold_count INT,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_creation_date TIMESTAMP
+. . . . . . . . . . . . . . . . . . . . . . .> )
+. . . . . . . . . . . . . . . . . . . . . . .> STORED AS AVRO LOCATION 'project/warehouse/items'
+. . . . . . . . . . . . . . . . . . . . . . .> TBLPROPERTIES ('avro.schema.url'='project/warehouse/avsc/items.avsc');
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> -- Check the datatypes of the columns of the new tables
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> SELECT * FROM items_unpart LIMIT 2;
++----------------------+----------------------+-------------------------+----------------------------------------------------+------------------------------+---------------------+---------------------+------------------------+-------------------------+----------------------------+--------------------------+----------------------------------+
+| items_unpart.itemid  | items_unpart.shopid  | items_unpart.item_name  |           items_unpart.item_description            | items_unpart.item_variation  | items_unpart.price  | items_unpart.stock  | items_unpart.category  | items_unpart.cb_option  | items_unpart.is_preferred  | items_unpart.sold_count  | items_unpart.item_creation_date  |
++----------------------+----------------------+-------------------------+----------------------------------------------------+------------------------------+---------------------+---------------------+------------------------+-------------------------+----------------------------+--------------------------+----------------------------------+
+| 1925574              | 210000               | Golden mobile numbers   | Unregistered prepaid cards1) 93355333  selling @ $4002) 81606060  selling @ $500Please contact @ 98152128 / 96911808 | {}                           | 400.0               | 1                   | Mobile & Gadgets       | false                   | false                      | 0                        | 1443648240000                    |
+| 1925617              | 210000               | Golden mobile numbers   | Unregistered prepaid cards1) 93355888  selling @ $4002) 93355500  selling @ $500Please contact @ 98152128 / 96911808 | {}                           | 400.0               | 1                   | Mobile & Gadgets       | false                   | false                      | 0                        | 1443648360000                    |
++----------------------+----------------------+-------------------------+----------------------------------------------------+------------------------------+---------------------+---------------------+------------------------+-------------------------+----------------------------+--------------------------+----------------------------------+
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> -- Create external, partitioned and bucketing Hive table
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> CREATE EXTERNAL TABLE items (
+. . . . . . . . . . . . . . . . . . . . . . .>     itemid INT,
+. . . . . . . . . . . . . . . . . . . . . . .>     shopid INT,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_name STRING,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_description STRING,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_variation STRING,
+. . . . . . . . . . . . . . . . . . . . . . .>     price FLOAT,
+. . . . . . . . . . . . . . . . . . . . . . .>     stock INT,
+. . . . . . . . . . . . . . . . . . . . . . .>     cb_option BOOLEAN,
+. . . . . . . . . . . . . . . . . . . . . . .>     is_preferred BOOLEAN,
+. . . . . . . . . . . . . . . . . . . . . . .>     sold_count INT,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_creation_date TIMESTAMP
+. . . . . . . . . . . . . . . . . . . . . . .> )
+. . . . . . . . . . . . . . . . . . . . . . .> PARTITIONED BY (category STRING)
+. . . . . . . . . . . . . . . . . . . . . . .> CLUSTERED BY (is_preferred) INTO 2 BUCKETS
+. . . . . . . . . . . . . . . . . . . . . . .> STORED AS AVRO
+. . . . . . . . . . . . . . . . . . . . . . .> LOCATION 'project/warehouse/items'
+. . . . . . . . . . . . . . . . . . . . . . .> TBLPROPERTIES ('AVRO.COMPRESS'='SNAPPY');
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> SET hive.exec.dynamic.partition=true;
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> SET hive.exec.dynamic.partition.mode=nonstrict;
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> INSERT INTO items
+. . . . . . . . . . . . . . . . . . . . . . .> PARTITION (category)
+. . . . . . . . . . . . . . . . . . . . . . .> SELECT 
+. . . . . . . . . . . . . . . . . . . . . . .>     itemid,
+. . . . . . . . . . . . . . . . . . . . . . .>     shopid,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_name,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_description,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_variation,
+. . . . . . . . . . . . . . . . . . . . . . .>     price,
+. . . . . . . . . . . . . . . . . . . . . . .>     stock,
+. . . . . . . . . . . . . . . . . . . . . . .>     cb_option,
+. . . . . . . . . . . . . . . . . . . . . . .>     is_preferred,
+. . . . . . . . . . . . . . . . . . . . . . .>     sold_count,
+. . . . . . . . . . . . . . . . . . . . . . .>     item_creation_date,
+. . . . . . . . . . . . . . . . . . . . . . .>     category
+. . . . . . . . . . . . . . . . . . . . . . .> FROM items_unpart;
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> -- Check whether you can query data from the tables above.
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> SELECT * FROM items LIMIT 2;
++---------------+---------------+----------------------------------------------------+----------------------------------------------------+-----------------------+--------------+--------------+------------------+---------------------+-------------------+---------------------------+-----------------+
+| items.itemid  | items.shopid  |                  items.item_name                   |               items.item_description               | items.item_variation  | items.price  | items.stock  | items.cb_option  | items.is_preferred  | items.sold_count  | items.item_creation_date  | items.category  |
++---------------+---------------+----------------------------------------------------+----------------------------------------------------+-----------------------+--------------+--------------+------------------+---------------------+-------------------+---------------------------+-----------------+
+| 214336190     | 16581681      | LuxxeWhite Glutathione                             | LUXXE WHITE IS NOW AVAILABLE IN SINGAPOREMASTER ANTIOXIDANT & SKIN WHITENING SOLUTION FOR MEN & WOMEN! LUXXE WHITE ENHANCED GLUTATHIONE✔Detoxifies the body (💯% safe for the liver, lungs & kidneys)✔️Detoxifies the blood (Beautiful skin comes from HEALTHY BLOOD.)✔ Continuous intake helps fight and/or prevent: pimples, acne, blemishes, oiliness & other skin related problems.✔Boosts the immune system & balance hormone.👍FDA, GMP, HALAL Certified👍Recommended by Doctors & CelebritiesFOR INFO..WHATSAPP #6585112519☕️☕️☕️ | {}                    | 95.0         | 5            | false            | false               | 0                 | 2017-04-10 20:21:00.0     | #N/A            |
+| 69751570      | 10136611      | Soft Coral Decor 3 colors Resin Emulational Coral Plant Deco | <p>    <span>Material: Resin</span></p><p>     <span><span><span>Color: rosy / purple / blue</span></span></span></p><p>     <span><span><span>Size: 8 x 6 cm (Width *Height)</span></span></span></p><p>    <span>Features:</span></p><p>     <span><span><span>Resin coral decor, easy to clean.</span></span></span></p><p>     <span><span><span>It is not poisonous, and can make the fish have a happy playing place.</span></span></span></p><p>     <span><span><span>Specializd for Aquarum decoration.</span></span></span></p><p>    <span>Packing list:</span><span>&nbsp;1pc soft coral decor</span></p><p>     <img src=http://g01.a.alicdn.com/kf/HTB1LIADIpXXXXbOXXXXq6xXFXXXu/224718777/HTB1LIADIpXXXXbOXXXXq6xXFXXXu.jpg alt=image /><img src=http://g01.a.alicdn.com/kf/HTB1WQEmIpXXXXcpXFXXq6xXFXXXW/224718777/HTB1WQEmIpXXXXcpXFXXq6xXFXXXW.jpg alt=image /><img src=http://g03.a.alicdn.com/kf/HTB1Hh3cIpXXXXaOaXXXq6xXFXXXH/224718777/HTB1Hh3cIpXXXXaOaXXXq6xXFXXXH.jpg alt=image /><img src=http://g03.a.alicdn.com/kf/HTB13T7rIpXXXXcRXpXXq6xXFXXXj/224718777/HTB13T7rIpXXXXcRXpXXq6xXFXXXj.jpg alt=image /><img src=http://g01.a.alicdn.com/kf/HTB1XNMuIpXXXXcqXpXXq6xXFXXXr/224718777/HTB1XNMuIpXXXXcqXpXXq6xXFXXXr.jpg alt=image /><img src=http://g02.a.alicdn.com/kf/HTB1V4ssIpXXXXXqXFXXq6xXFXXX2/224718777/HTB1V4ssIpXXXXXqXFXXq6xXFXXX2.jpg alt=image /><img src=http://g02.a.alicdn.com/kf/HTB1urkwIpXXXXbdXpXXq6xXFXXXR/224718777/HTB1urkwIpXXXXbdXpXXq6xXFXXXR.jpg alt=image /><img src=http://g02.a.alicdn.com/kf/HTB18BkyIpXXXXXyXpXXq6xXFXXXu/224718777/HTB18BkyIpXXXXXyXpXXq6xXFXXXu.jpg style=fontsize: 12px; alt=image /><img src=http://g02.a.alicdn.com/kf/HTB1fjQtIpXXXXcFXpXXq6xXFXXXB/224718777/HTB1fjQtIpXXXXcFXpXXq6xXFXXXB.jpg style=fontsize: 12px; alt=image /><img src=http://g04.a.alicdn.com/kf/HTB1rOohIpXXXXcCXFXXq6xXFXXXS/224718777/HTB1rOohIpXXXXcCXFXXq6xXFXXXS.jpg style=fontsize: 12px; alt=image /><img src=http://g02.a.alicdn.com/kf/HTB147IpIpXXXXajXFXXq6xXFXXXW/224718777/HTB147IpIpXXXXajXFXXq6xXFXXXW.jpg style=fontsize: 12px; alt=image /><img src=http://g01.a.alicdn.com/kf/HTB1.k7rIpXXXXc.XpXXq6xXFXXXP/224718777/HTB1.k7rIpXXXXc.XpXXq6xXFXXXP.jpg style=fontsize: 12px; alt=image /><img src=http://g04.a.alicdn.com/kf/HTB1nRcuIpXXXXaaXpXXq6xXFXXXF/224718777/HTB1nRcuIpXXXXaaXpXXq6xXFXXXF.jpg style=fontsize: 12px; alt=image /><img src=http://g02.a.alicdn.com/kf/HTB1Uo3pIpXXXXXdXFXXq6xXFXXXm/224718777/HTB1Uo3pIpXXXXXdXFXXq6xXFXXXm.jpg style=fontsize: 12px; alt=image /><img src=http://g03.a.alicdn.com/kf/HTB1vXEhIpXXXXaJXVXXq6xXFXXXZ/224718777/HTB1vXEhIpXXXXaJXVXXq6xXFXXXZ.jpg style=fontsize: 12px; alt=image /><img src=http://g02.a.alicdn.com/kf/HTB1VjMGIpXXXXXvXXXXq6xXFXXX7/224718777/HTB1VjMGIpXXXXXvXXXXq6xXFXXX7.jpg style=fontsize: 12px; alt=image /></p><p>    <br /></p> | {}                    | 8.0          | 222          | true             | false               | 0                 | 2016-09-27 14:49:00.0     | #N/A            |
++---------------+---------------+----------------------------------------------------+----------------------------------------------------+-----------------------+--------------+--------------+------------------+---------------------+-------------------+---------------------------+-----------------+
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> -- Delete the unpartitioned Hive tables from your database and
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> -- for the EDA use only partititioned and bucketing Hive tables.
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> DROP TABLE IF EXISTS items_unpart;
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 
+0: jdbc:hive2://hadoop-03.uni.innopolis.ru:10> 

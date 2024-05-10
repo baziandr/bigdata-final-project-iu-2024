@@ -1,0 +1,1 @@
+ALTER TABLE items ALTER COLUMN item_creation_date TYPE timestamp without time zone USING TO_TIMESTAMP(item_creation_date, 'DD-MM-YY HH24:MI');

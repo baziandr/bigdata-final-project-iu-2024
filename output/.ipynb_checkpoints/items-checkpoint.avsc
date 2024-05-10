@@ -1,0 +1,79 @@
+{
+  "type" : "record",
+  "name" : "items",
+  "doc" : "Sqoop import of items",
+  "fields" : [ {
+    "name" : "itemid",
+    "type" : [ "null", "int" ],
+    "default" : null,
+    "columnName" : "itemid",
+    "sqlType" : "4"
+  }, {
+    "name" : "shopid",
+    "type" : [ "null", "int" ],
+    "default" : null,
+    "columnName" : "shopid",
+    "sqlType" : "4"
+  }, {
+    "name" : "item_name",
+    "type" : [ "null", "string" ],
+    "default" : null,
+    "columnName" : "item_name",
+    "sqlType" : "12"
+  }, {
+    "name" : "item_description",
+    "type" : [ "null", "string" ],
+    "default" : null,
+    "columnName" : "item_description",
+    "sqlType" : "12"
+  }, {
+    "name" : "item_variation",
+    "type" : [ "null", "string" ],
+    "default" : null,
+    "columnName" : "item_variation",
+    "sqlType" : "12"
+  }, {
+    "name" : "price",
+    "type" : [ "null", "double" ],
+    "default" : null,
+    "columnName" : "price",
+    "sqlType" : "8"
+  }, {
+    "name" : "stock",
+    "type" : [ "null", "int" ],
+    "default" : null,
+    "columnName" : "stock",
+    "sqlType" : "4"
+  }, {
+    "name" : "category",
+    "type" : [ "null", "string" ],
+    "default" : null,
+    "columnName" : "category",
+    "sqlType" : "12"
+  }, {
+    "name" : "cb_option",
+    "type" : [ "null", "boolean" ],
+    "default" : null,
+    "columnName" : "cb_option",
+    "sqlType" : "-7"
+  }, {
+    "name" : "is_preferred",
+    "type" : [ "null", "boolean" ],
+    "default" : null,
+    "columnName" : "is_preferred",
+    "sqlType" : "-7"
+  }, {
+    "name" : "sold_count",
+    "type" : [ "null", "int" ],
+    "default" : null,
+    "columnName" : "sold_count",
+    "sqlType" : "4"
+  }, {
+    "name" : "item_creation_date",
+    "type" : [ "null", "string" ],
+    "default" : null,
+    "columnName" : "item_creation_date",
+    "sqlType" : "12"
+  } ],
+  "tableName" : "items"
+}

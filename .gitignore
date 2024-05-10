@@ -1,0 +1,4 @@
+scripts/secrets/*
+data/train/*
+data/test/*
+data/original_data.csv
